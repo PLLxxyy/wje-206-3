@@ -37,7 +37,7 @@ export default function App() {
       case 'weekly':
         return <WeeklyPage key={refreshKey} onEdit={handleEdit} />;
       case 'monthly':
-        return <MonthlyPage key={refreshKey} />;
+        return <MonthlyPage key={refreshKey} onEdit={handleEdit} />;
       case 'settings':
         return <SettingsPage key={refreshKey} />;
     }

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getRecords, getSettings, formatDurationDecimal } from '../store';
+import { getRecords, getSettings, formatDuration, formatDurationDecimal } from '../store';
 import { SleepRecord } from '../types';
+
+interface Props {
+  onEdit?: (record: SleepRecord) => void;
+}
 
 function getMonthDays(year: number, month: number): string[] {
   const days: string[] = [];
@@ -14,7 +18,7 @@ function getMonthDays(year: number, month: number): string[] {
   return days;
 }
 
-export default function MonthlyPage() {
+export default function MonthlyPage({ onEdit }: Props) {
   const [records, setRecords] = useState<SleepRecord[]>([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -113,7 +117,15 @@ export default function MonthlyPage() {
                   <text x="392" y={targetY + 4} fill="rgba(239,83,80,0.5)" fontSize="8">目标</text>
                   <path d={pathD} fill="none" stroke="#4fc3f7" strokeWidth="2" />
                   {points.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="4" fill={p.r.duration < targetMinutes ? '#ef5350' : '#4fc3f7'} />
+                    <circle
+                      key={i}
+                      cx={p.x}
+                      cy={p.y}
+                      r="4"
+                      fill={p.r.duration < targetMinutes ? '#ef5350' : '#4fc3f7'}
+                      style={{ cursor: onEdit ? 'pointer' : 'default' }}
+                      onClick={() => onEdit && onEdit(p.r)}
+                    />
                   ))}
                 </>
               );
@@ -164,6 +176,50 @@ export default function MonthlyPage() {
           </div>
         </div>
       )}
+
+      <div className="card">
+        <div className="card-title">每日记录</div>
+        <div className="sleep-records">
+          {monthDays.map(dateStr => {
+            const record = records.find(r => r.date === dateStr);
+            return (
+              <div key={dateStr} className="record-item">
+                <div style={{ flex: 1 }}>
+                  <div className="record-date">{dateStr}</div>
+                  {record ? (
+                    <div className="record-time">{record.bedTime} - {record.wakeTime}</div>
+                  ) : (
+                    <div className="record-time" style={{ color: 'rgba(255,255,255,0.2)' }}>无记录</div>
+                  )}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  {record ? (
+                    <>
+                      <div className={`record-duration ${record.duration < targetMinutes ? 'unmet' : ''}`}>
+                        {formatDuration(record.duration)}
+                      </div>
+                      <span className={`quality-badge quality-${record.quality}`}>
+                        {record.quality}星
+                      </span>
+                      {onEdit && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => onEdit(record)}
+                          style={{ fontSize: '0.75rem', padding: '2px 8px', marginTop: 6, marginLeft: 8 }}
+                        >
+                          编辑
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.85rem' }}>-</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
