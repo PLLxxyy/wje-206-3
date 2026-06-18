@@ -1,18 +1,30 @@
-import { useState } from 'react';
-import { saveRecord, calcDuration, generateId, getTodayStr } from '../store';
+import { useState, useEffect } from 'react';
+import { saveRecord, updateRecord, calcDuration, generateId, getTodayStr } from '../store';
 import { SleepRecord, SLEEP_TAGS } from '../types';
 
 interface Props {
   onClose: () => void;
   onSaved: () => void;
+  editRecord?: SleepRecord | null;
 }
 
-export default function AddSleepPage({ onClose, onSaved }: Props) {
+export default function AddSleepPage({ onClose, onSaved, editRecord }: Props) {
+  const isEdit = !!editRecord;
   const [bedTime, setBedTime] = useState('23:00');
   const [wakeTime, setWakeTime] = useState('07:00');
   const [quality, setQuality] = useState(3);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [date, setDate] = useState(getTodayStr());
+
+  useEffect(() => {
+    if (editRecord) {
+      setBedTime(editRecord.bedTime);
+      setWakeTime(editRecord.wakeTime);
+      setQuality(editRecord.quality);
+      setSelectedTags(editRecord.tags);
+      setDate(editRecord.date);
+    }
+  }, [editRecord]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -27,18 +39,31 @@ export default function AddSleepPage({ onClose, onSaved }: Props) {
       return;
     }
 
-    const record: SleepRecord = {
-      id: generateId(),
-      date,
-      bedTime,
-      wakeTime,
-      duration,
-      quality,
-      tags: selectedTags,
-      createdAt: Date.now(),
-    };
+    if (isEdit && editRecord) {
+      const updated: SleepRecord = {
+        ...editRecord,
+        date,
+        bedTime,
+        wakeTime,
+        duration,
+        quality,
+        tags: selectedTags,
+      };
+      updateRecord(updated);
+    } else {
+      const record: SleepRecord = {
+        id: generateId(),
+        date,
+        bedTime,
+        wakeTime,
+        duration,
+        quality,
+        tags: selectedTags,
+        createdAt: Date.now(),
+      };
+      saveRecord(record);
+    }
 
-    saveRecord(record);
     onSaved();
   };
 
@@ -46,7 +71,7 @@ export default function AddSleepPage({ onClose, onSaved }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>记录睡眠</h2>
+          <h2>{isEdit ? '编辑睡眠记录' : '记录睡眠'}</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
@@ -120,7 +145,7 @@ export default function AddSleepPage({ onClose, onSaved }: Props) {
         </div>
 
         <button className="btn btn-primary" onClick={handleSave}>
-          保存记录
+          {isEdit ? '保存修改' : '保存记录'}
         </button>
       </div>
     </div>

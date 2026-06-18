@@ -24,6 +24,12 @@ export function deleteRecord(id: string): void {
   localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
 }
 
+export function updateRecord(record: SleepRecord): void {
+  const records = getRecords().map(r => r.id === record.id ? record : r);
+  records.sort((a, b) => b.createdAt - a.createdAt);
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+}
+
 export function getSettings(): AppSettings {
   try {
     const data = localStorage.getItem(SETTINGS_KEY);

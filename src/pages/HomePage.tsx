@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { getRecords, getSettings, getYesterdayStr, formatDuration, formatDurationDecimal } from '../store';
 import { SleepRecord, QUALITY_LABELS } from '../types';
 
+interface Props {
+  onEdit?: (record: SleepRecord) => void;
+}
+
 function StarDisplay({ rating }: { rating: number }) {
   return (
     <div className="star-rating">
@@ -12,7 +16,7 @@ function StarDisplay({ rating }: { rating: number }) {
   );
 }
 
-export default function HomePage() {
+export default function HomePage({ onEdit }: Props) {
   const [record, setRecord] = useState<SleepRecord | null>(null);
   const [recentRecords, setRecentRecords] = useState<SleepRecord[]>([]);
   const [settings, setSettings] = useState(getSettings());
@@ -31,7 +35,18 @@ export default function HomePage() {
   return (
     <div>
       <div className="card">
-        <div className="card-title">昨晚睡眠</div>
+        <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>昨晚睡眠</span>
+          {record && onEdit && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => onEdit(record)}
+              style={{ fontSize: '0.8rem', padding: '4px 12px' }}
+            >
+              编辑
+            </button>
+          )}
+        </div>
         {record ? (
           <>
             <div className="sleep-time-display">
@@ -93,7 +108,7 @@ export default function HomePage() {
           <div className="sleep-records">
             {recentRecords.map(r => (
               <div key={r.id} className="record-item">
-                <div>
+                <div style={{ flex: 1 }}>
                   <div className="record-date">{r.date}</div>
                   <div className="record-time">{r.bedTime} - {r.wakeTime}</div>
                 </div>
@@ -104,6 +119,15 @@ export default function HomePage() {
                   <span className={`quality-badge quality-${r.quality}`}>
                     {r.quality}星
                   </span>
+                  {onEdit && (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => onEdit(r)}
+                      style={{ fontSize: '0.75rem', padding: '2px 8px', marginTop: 6, marginLeft: 8 }}
+                    >
+                      编辑
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

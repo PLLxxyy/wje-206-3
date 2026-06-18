@@ -4,25 +4,38 @@ import AddSleepPage from './pages/AddSleepPage';
 import WeeklyPage from './pages/WeeklyPage';
 import MonthlyPage from './pages/MonthlyPage';
 import SettingsPage from './pages/SettingsPage';
+import { SleepRecord } from './types';
 
 type Page = 'home' | 'weekly' | 'monthly' | 'settings';
 
 export default function App() {
   const [page, setPage] = useState<Page>('home');
   const [showAdd, setShowAdd] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<SleepRecord | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSaved = useCallback(() => {
     setShowAdd(false);
+    setEditingRecord(null);
     setRefreshKey(k => k + 1);
+  }, []);
+
+  const handleEdit = useCallback((record: SleepRecord) => {
+    setEditingRecord(record);
+    setShowAdd(true);
+  }, []);
+
+  const handleCloseAdd = useCallback(() => {
+    setShowAdd(false);
+    setEditingRecord(null);
   }, []);
 
   const renderPage = () => {
     switch (page) {
       case 'home':
-        return <HomePage key={refreshKey} />;
+        return <HomePage key={refreshKey} onEdit={handleEdit} />;
       case 'weekly':
-        return <WeeklyPage key={refreshKey} />;
+        return <WeeklyPage key={refreshKey} onEdit={handleEdit} />;
       case 'monthly':
         return <MonthlyPage key={refreshKey} />;
       case 'settings':
@@ -82,7 +95,11 @@ export default function App() {
       </nav>
 
       {showAdd && (
-        <AddSleepPage onClose={() => setShowAdd(false)} onSaved={handleSaved} />
+        <AddSleepPage
+          onClose={handleCloseAdd}
+          onSaved={handleSaved}
+          editRecord={editingRecord}
+        />
       )}
     </>
   );

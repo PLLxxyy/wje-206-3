@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { getRecords, getSettings, formatDuration, formatDurationDecimal } from '../store';
 import { SleepRecord } from '../types';
 
+interface Props {
+  onEdit?: (record: SleepRecord) => void;
+}
+
 const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 function getWeekStart(date: Date): Date {
@@ -22,7 +26,7 @@ function formatWeekRange(start: Date): string {
   return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`;
 }
 
-export default function WeeklyPage() {
+export default function WeeklyPage({ onEdit }: Props) {
   const [records, setRecords] = useState<SleepRecord[]>([]);
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()));
   const [settings, setSettings] = useState(getSettings());
@@ -130,7 +134,7 @@ export default function WeeklyPage() {
         <div className="sleep-records">
           {days.map((day, i) => (
             <div key={i} className="record-item">
-              <div>
+              <div style={{ flex: 1 }}>
                 <div className="record-date">{day.dateStr} 周{day.dayName}</div>
                 {day.record ? (
                   <div className="record-time">{day.record.bedTime} - {day.record.wakeTime}</div>
@@ -147,6 +151,15 @@ export default function WeeklyPage() {
                     <span className={`quality-badge quality-${day.record.quality}`}>
                       {day.record.quality}星
                     </span>
+                    {onEdit && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => onEdit(day.record!)}
+                        style={{ fontSize: '0.75rem', padding: '2px 8px', marginTop: 6, marginLeft: 8 }}
+                      >
+                        编辑
+                      </button>
+                    )}
                   </>
                 ) : (
                   <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.85rem' }}>-</span>
